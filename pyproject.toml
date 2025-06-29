@@ -1,0 +1,16 @@
+[project]
+version = "0.1.0"
+name = "nnbench"
+dependencies = [
+  "openai",
+  "kserve",
+  "onnxruntime-gpu",
+  "tensorrt",
+  "cuda-python",
+  "vllm",
+]
+scripts.nnbench = "__init__:main"
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
