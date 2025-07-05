@@ -7,8 +7,16 @@ import tensorrt as trt
 from .common_runtime import allocate_buffers, do_inference
 
 
+class Logger(trt.ILogger):
+    def __init__(self):
+        super().__init__()
+
+    def log(self, severity, msg):
+        logging.log(logging.CRITICAL - 10 * severity.value, msg)
+
+
 def generator(model, batch_size, _args):
-    with open(model, 'rb') as f, trt.Runtime(trt.Logger()) as runtime:
+    with open(model, 'rb') as f, trt.Runtime(Logger()) as runtime:
         engine = runtime.deserialize_cuda_engine(f.read())
 
     logging.debug(engine.num_optimization_profiles)

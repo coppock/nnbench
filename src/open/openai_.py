@@ -1,4 +1,5 @@
 import argparse
+import logging
 import random
 import time
 
@@ -16,6 +17,8 @@ def Client(model, args):
         api_key='empty',
         base_url='http://localhost:8000/v1',
     )
+
+    logging.debug('OpenAI client initialized')
 
     async def request():
         prompt = [random.randint(0, args.vocab_size - 1)

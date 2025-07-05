@@ -1,6 +1,6 @@
 [project]
 version = "0.1.0"
-name = "nnbench"
+name = "nnloop"
 dependencies = [
   "openai",
   "kserve",
@@ -9,7 +9,7 @@ dependencies = [
   "cuda-python",
   "vllm",
 ]
-scripts.nnbench = "__init__:main"
+scripts.nnloop = "__init__:main"
 
 [build-system]
 requires = ["setuptools >= 77.0.3"]

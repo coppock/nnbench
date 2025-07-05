@@ -1,28 +1,26 @@
 import argparse
 import asyncio
+import importlib
 import os
 import signal
 import sys
 import itertools
 import random
 
-from . import kserve_
-from . import openai_
-
-_CHOICES = {
-    'kserve': kserve_,
-    'openai': openai_,
+_APIS = {
+    'kserve': 'kserve_',
+    'openai': 'openai_',
 }
 
 
-async def load(client, num_requests, rate):
+async def loop(request, num_requests, rate):
     event_loop = asyncio.get_running_loop()
     for sig in signal.SIGTERM, signal.SIGINT:
         event_loop.add_signal_handler(sig, event_loop.stop)
 
     async def time_request():
         try:
-            print(await client(), flush=True)
+            print(await request(), flush=True)
         except BrokenPipeError:
             os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
             event_loop.stop()
@@ -38,13 +36,17 @@ def main(args=sys.argv[1:]):
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--num-requests', type=int)
     parser.add_argument('-r', '--rate', type=float)
-    parser.add_argument('api', type=_CHOICES.get, choices=_CHOICES.values())
+    parser.add_argument('api', choices=_APIS)
     parser.add_argument('model')
-    args = parser.parse_args(args)
     namespace, args = parser.parse_known_args(args)
 
-    client = namespace.api.Client(namespace.model, args)
-    asyncio.run(load(client, namespace.num_requests, namespace.rate))
+    api = importlib.import_module(f'{__name__}.{_APIS[namespace.api]}', __package__)
+    request = api.Client(namespace.model, args)
+    try:
+        asyncio.run(loop(request, namespace.num_requests, namespace.rate))
+    except RuntimeError as e:
+        if str(e) != 'Event loop stopped before Future completed.':
+            raise
 
 
 if __name__ == '__main__':
